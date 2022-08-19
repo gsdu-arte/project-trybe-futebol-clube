@@ -20,7 +20,7 @@ module.exports = {
           key: 'id',
         }
       },
-      homeTeamGoals:{
+      homeTeamGoals: {
         type: Sequelize.INTEGER,
         field: 'home_team_goals',
         allowNull: false,
@@ -42,7 +42,7 @@ module.exports = {
         allowNull: false,
       },
       inProgress: {
-        type: Sequelize.INTEGER,
+        type: Sequelize.BOOLEAN,
         field: 'in_progress',
         allowNull: false,
       }
