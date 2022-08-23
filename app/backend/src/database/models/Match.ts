@@ -12,7 +12,7 @@ class MatchModel extends Model {
   inProgress!: boolean;
 }
 
-TeamModel.init({
+MatchModel.init({
   id: {
     type: INTEGER,
     primaryKey: true,
@@ -41,7 +41,7 @@ TeamModel.init({
   },
 }, {
   sequelize: db,
-  modelName: 'users',
+  modelName: 'matches',
   underscored: true,
   timestamps: false,
 });
