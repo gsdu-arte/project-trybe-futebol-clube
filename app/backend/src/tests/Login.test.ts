@@ -2,7 +2,6 @@ import * as sinon from 'sinon';
 import * as chai from 'chai';
 import * as bcrypt from 'bcryptjs';
 import * as jwt from 'jsonwebtoken';
-import * as chaiAsPromised from 'chai-as-promised';
 // @ts-ignore
 import chaiHttp = require('chai-http');
 
@@ -18,7 +17,6 @@ import UserService from '../services/UserService';
 import JwtService from '../services/JwtService';
 
 chai.use(chaiHttp);
-chai.use(chaiAsPromised);
 
 const { expect } = chai;
 
