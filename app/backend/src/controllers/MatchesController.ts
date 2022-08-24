@@ -24,9 +24,9 @@ export default class MatchesController {
     await MatchesService.checkIfTeamsAreTheSame(req.body);
     await MatchesService.checkIfTeamsAlreadyExists(req.body);
 
-    const newUser = await MatchesService.addMatch(req.body);
+    const newMatch = await MatchesService.addMatch(req.body);
 
-    return res.status(201).json(newUser);
+    return res.status(201).json(newMatch);
   }
 
   public static async updateProgress(req: Request, res: Response) {
