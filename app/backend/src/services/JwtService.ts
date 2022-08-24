@@ -2,7 +2,7 @@ import * as jwt from 'jsonwebtoken';
 
 import IUser from '../interfaces/IUser';
 
-import BadRequestError from '../errors/BadRequestError';
+import UnauthorizedError from '../errors/UnauthorizedError';
 
 const secret: string = process.env.JWT_SECRET || 'jwt_secret';
 
@@ -13,11 +13,14 @@ export default class JwtService {
     return token;
   }
 
-  public static async validateToken(token: string | undefined): Promise<string> {
-    if (!token) throw new BadRequestError('Token not found');
-    const data = jwt.verify(token, secret);
-    const user: IUser = Object.entries(data)[0][1];
+  public static async validateToken(token: string): Promise<string> {
+    try {
+      const data = jwt.verify(token, secret);
+      const user = Object.entries(data)[0][1];
 
-    return user.role;
+      return user.role;
+    } catch (error) {
+      throw new UnauthorizedError('Token must be a valid token');
+    }
   }
 }

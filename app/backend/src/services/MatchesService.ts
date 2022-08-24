@@ -1,7 +1,13 @@
 import IMatches from '../interfaces/IMatches';
 
+import IMatchBody from '../interfaces/IMatchBody';
+
 import MatchModel from '../database/models/Match';
 import TeamModel from '../database/models/Team';
+import TeamsService from './TeamsService';
+
+import UnauthorizedError from '../errors/UnauthorizedError';
+import NotFoundError from '../errors/NotFoundError';
 
 export default class MatchesService {
   public static async getAll(): Promise<IMatches[]> {
@@ -41,5 +47,42 @@ export default class MatchesService {
     });
 
     return matches as IMatches[];
+  }
+
+  public static async checkIfTeamsAreTheSame(data: IMatchBody) {
+    const { homeTeam, awayTeam } = data;
+    if (homeTeam === awayTeam) {
+      throw new UnauthorizedError('It is not possible to create a match with two equal teams');
+    }
+  }
+
+  public static async checkIfTeamsAlreadyExists(data: IMatchBody) {
+    const { homeTeam, awayTeam } = data;
+    const houseTeam = await TeamsService.getById(homeTeam);
+    const visitorTeam = await TeamsService.getById(awayTeam);
+    if (!houseTeam || !visitorTeam) {
+      throw new NotFoundError('There is no team with such id!');
+    }
+  }
+
+  public static async addMatch(data: IMatchBody) {
+    const { homeTeam, homeTeamGoals, awayTeam, awayTeamGoals } = data;
+    const newMatch = await MatchModel.create({
+      homeTeam,
+      homeTeamGoals,
+      awayTeam,
+      awayTeamGoals,
+      inProgress: true,
+    });
+
+    return newMatch as IMatches;
+  }
+
+  public static async updateProgress(id: number) {
+    await MatchModel.update({
+      inProgress: false,
+    }, {
+      where: { id },
+    });
   }
 }

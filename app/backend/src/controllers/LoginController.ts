@@ -19,7 +19,7 @@ export default class LoginController {
 
   public static async getUserRole(req: Request, res: Response) {
     const token = req.headers.authorization;
-    const role = await JwtService.validateToken(token);
+    const role = await JwtService.validateToken(token as string);
 
     res.status(200).json({ role });
   }
