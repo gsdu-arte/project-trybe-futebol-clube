@@ -6,6 +6,8 @@ import IMatches from '../interfaces/IMatches';
 import MatchesService from './MatchesService';
 import TeamsService from './TeamsService';
 
+import getClassifications from '../utils/getClassifications';
+
 export default class HomeLeaderboardService {
   public static getTotalVictories(matches: IMatches[]): number {
     const totalVictories = matches
@@ -95,21 +97,6 @@ export default class HomeLeaderboardService {
     return leaderboard as ILeaderboard;
   }
 
-  public static getOrderedClassifications(leaderboard: ILeaderboard[]) {
-    const orderedClassification = leaderboard
-      .sort((a, b) => {
-        const sorted = b.totalPoints - a.totalPoints
-          || b.totalVictories - a.totalVictories
-          || b.goalsBalance - a.goalsBalance
-          || b.goalsFavor - a.goalsFavor
-          || b.goalsOwn - a.goalsOwn;
-
-        return sorted;
-      });
-
-    return orderedClassification;
-  }
-
   public static async getOrderedLeaderboard(): Promise<ILeaderboard[]> {
     const teams = await TeamsService.getAll();
     const matches = await MatchesService.getAllByProgress(false);
@@ -118,7 +105,7 @@ export default class HomeLeaderboardService {
 
       return HomeLeaderboardService.createLeaderboard(team.teamName, teamMatches);
     });
-    const filteredLeaderboard = HomeLeaderboardService.getOrderedClassifications(leaderboard);
+    const filteredLeaderboard = getClassifications.getOrderedClassifications(leaderboard);
 
     return filteredLeaderboard as ILeaderboard[];
   }

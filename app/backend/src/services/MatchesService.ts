@@ -95,4 +95,12 @@ export default class MatchesService {
       where: { id },
     });
   }
+
+  public static async getAllWithoutTeamsNames() {
+    const matches = await MatchModel.findAll({
+      where: { inProgress: false },
+    });
+
+    return matches;
+  }
 }
