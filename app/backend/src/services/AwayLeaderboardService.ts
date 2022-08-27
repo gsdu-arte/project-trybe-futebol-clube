@@ -1,8 +1,6 @@
+import ITeam from '../interfaces/ITeams';
 import ILeaderboard from '../interfaces/ILeaderboard';
 import IMatches from '../interfaces/IMatches';
-
-import MatchesService from './MatchesService';
-import TeamsService from './TeamsService';
 
 import getClassifications from '../utils/getClassifications';
 
@@ -95,9 +93,10 @@ export default class AwayLeaderboardService {
     return leaderboard as ILeaderboard;
   }
 
-  public static async getOrderedLeaderboard(): Promise<ILeaderboard[]> {
-    const teams = await TeamsService.getAll();
-    const matches = await MatchesService.getAllByProgress(false);
+  public static async getOrderedLeaderboard(
+    teams: ITeam[],
+    matches: IMatches[],
+  ): Promise<ILeaderboard[]> {
     const leaderboard = teams.map((team) => {
       const teamMatches = matches.filter((match) => match.awayTeam === team.id);
 

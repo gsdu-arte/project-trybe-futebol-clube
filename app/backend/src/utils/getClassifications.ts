@@ -1,3 +1,5 @@
+// https://developer.mozilla.org/pt-BR/docs/Web/JavaScript/Reference/Global_Objects/Array/sort
+
 import ILeaderboard from '../interfaces/ILeaderboard';
 
 const getClassifications = {

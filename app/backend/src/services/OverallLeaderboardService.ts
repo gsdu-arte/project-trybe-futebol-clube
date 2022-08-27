@@ -1,8 +1,5 @@
 import ILeaderboard from '../interfaces/ILeaderboard';
 
-import AwayLeaderboardService from './AwayLeaderboardService';
-import HomeLeaderboardService from './HomeLeaderboardService';
-
 import getClassifications from '../utils/getClassifications';
 
 export default class OverallLeaderboardService {
@@ -26,9 +23,10 @@ export default class OverallLeaderboardService {
     return leaderboard;
   }
 
-  public static async getOverallLeaderboard() {
-    const homeLeaderboard = await HomeLeaderboardService.getOrderedLeaderboard();
-    const awayLeaderboard = await AwayLeaderboardService.getOrderedLeaderboard();
+  public static async getOverallLeaderboard(
+    homeLeaderboard: ILeaderboard[],
+    awayLeaderboard: ILeaderboard[],
+  ) {
     const leaderboard = homeLeaderboard.map((hL) => {
       const aL = awayLeaderboard.find((aLeaderboard) => hL.name === aLeaderboard.name);
       if (!aL) throw new Error('We couldn\'t find a team with that name');
