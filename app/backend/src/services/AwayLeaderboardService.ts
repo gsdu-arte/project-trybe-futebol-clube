@@ -5,7 +5,7 @@ import IMatches from '../interfaces/IMatches';
 import getClassifications from '../utils/getClassifications';
 
 export default class AwayLeaderboardService {
-  public static getTotalVictories(matches: IMatches[]): number {
+  public static async getTotalVictories(matches: IMatches[]): Promise<number> {
     const totalVictories = matches
       .filter(
         (match) => match.awayTeamGoals > match.homeTeamGoals,
@@ -14,7 +14,7 @@ export default class AwayLeaderboardService {
     return totalVictories;
   }
 
-  public static getTotalDraws(matches: IMatches[]): number {
+  public static async getTotalDraws(matches: IMatches[]): Promise<number> {
     const totalDraws = matches
       .filter(
         (match) => match.awayTeamGoals === match.homeTeamGoals,
@@ -23,21 +23,21 @@ export default class AwayLeaderboardService {
     return totalDraws;
   }
 
-  public static getTotalPoints(matches: IMatches[]): number {
-    const totalVictories = AwayLeaderboardService.getTotalVictories(matches);
-    const totalDraws = AwayLeaderboardService.getTotalDraws(matches);
+  public static async getTotalPoints(matches: IMatches[]): Promise<number> {
+    const totalVictories = await AwayLeaderboardService.getTotalVictories(matches);
+    const totalDraws = await AwayLeaderboardService.getTotalDraws(matches);
     const totalPoints = (totalVictories * 3) + totalDraws;
 
     return totalPoints;
   }
 
-  public static getTotalGames(matches: IMatches[]): number {
+  public static async getTotalGames(matches: IMatches[]): Promise<number> {
     const totalGames = matches.length;
 
     return totalGames;
   }
 
-  public static getTotalLosses(matches: IMatches[]): number {
+  public static async getTotalLosses(matches: IMatches[]): Promise<number> {
     const totalLosses = matches
       .filter(
         (match) => match.awayTeamGoals < match.homeTeamGoals,
@@ -46,64 +46,74 @@ export default class AwayLeaderboardService {
     return totalLosses;
   }
 
-  public static getGoalsFavor(matches: IMatches[]): number {
+  public static async getGoalsFavor(matches: IMatches[]): Promise<number> {
     const goalsFavor = matches
       .reduce((acc, curr) => acc + curr.awayTeamGoals, 0);
 
     return goalsFavor;
   }
 
-  public static getGoalsOwn(matches: IMatches[]): number {
+  public static async getGoalsOwn(matches: IMatches[]): Promise<number> {
     const goalsOwn = matches
       .reduce((acc, curr) => acc + curr.homeTeamGoals, 0);
 
     return goalsOwn;
   }
 
-  public static getGoalsBalance(matches: IMatches[]): number {
-    const goalsFavor = AwayLeaderboardService.getGoalsFavor(matches);
-    const goalsOwn = AwayLeaderboardService.getGoalsOwn(matches);
+  public static async getGoalsBalance(matches: IMatches[]): Promise<number> {
+    const goalsFavor = await AwayLeaderboardService.getGoalsFavor(matches);
+    const goalsOwn = await AwayLeaderboardService.getGoalsOwn(matches);
     const goalsBalance = goalsFavor - goalsOwn;
 
     return goalsBalance;
   }
 
-  public static getEfficiency(matches: IMatches[]): number {
-    const totalPoints = AwayLeaderboardService.getTotalPoints(matches);
-    const totalGames = AwayLeaderboardService.getTotalGames(matches);
+  public static async getEfficiency(matches: IMatches[]): Promise<number> {
+    const totalPoints = await AwayLeaderboardService.getTotalPoints(matches);
+    const totalGames = await AwayLeaderboardService.getTotalGames(matches);
     const efficiency = ((totalPoints / (totalGames * 3)) * 100).toFixed(2);
 
     return Number(efficiency);
   }
 
-  public static createLeaderboard(teamName: string, matches: IMatches[]): ILeaderboard {
+  public static async createLeaderboard(
+    teamName: string,
+    matches: IMatches[],
+  ): Promise<ILeaderboard> {
     const leaderboard = {
       name: teamName,
-      totalPoints: AwayLeaderboardService.getTotalPoints(matches),
-      totalGames: AwayLeaderboardService.getTotalGames(matches),
-      totalVictories: AwayLeaderboardService.getTotalVictories(matches),
-      totalDraws: AwayLeaderboardService.getTotalDraws(matches),
-      totalLosses: AwayLeaderboardService.getTotalLosses(matches),
-      goalsFavor: AwayLeaderboardService.getGoalsFavor(matches),
-      goalsOwn: AwayLeaderboardService.getGoalsOwn(matches),
-      goalsBalance: AwayLeaderboardService.getGoalsBalance(matches),
-      efficiency: AwayLeaderboardService.getEfficiency(matches),
+      totalPoints: await AwayLeaderboardService.getTotalPoints(matches),
+      totalGames: await AwayLeaderboardService.getTotalGames(matches),
+      totalVictories: await AwayLeaderboardService.getTotalVictories(matches),
+      totalDraws: await AwayLeaderboardService.getTotalDraws(matches),
+      totalLosses: await AwayLeaderboardService.getTotalLosses(matches),
+      goalsFavor: await AwayLeaderboardService.getGoalsFavor(matches),
+      goalsOwn: await AwayLeaderboardService.getGoalsOwn(matches),
+      goalsBalance: await AwayLeaderboardService.getGoalsBalance(matches),
+      efficiency: await AwayLeaderboardService.getEfficiency(matches),
     };
 
     return leaderboard as ILeaderboard;
+  }
+
+  public static async orderedLeaderboard(leaderboard: ILeaderboard[]): Promise<ILeaderboard[]> {
+    const filteredLeaderboard = await getClassifications.getOrderedClassifications(leaderboard);
+
+    return filteredLeaderboard;
   }
 
   public static async getOrderedLeaderboard(
     teams: ITeam[],
     matches: IMatches[],
   ): Promise<ILeaderboard[]> {
-    const leaderboard = teams.map((team) => {
+    const leaderboardPromise = Promise.all(teams.map((team) => {
       const teamMatches = matches.filter((match) => match.awayTeam === team.id);
 
       return AwayLeaderboardService.createLeaderboard(team.teamName, teamMatches);
-    });
-    const filteredLeaderboard = getClassifications.getOrderedClassifications(leaderboard);
+    }));
+    const leaderboard = await leaderboardPromise;
+    const orderedLeaderboard = await AwayLeaderboardService.orderedLeaderboard(leaderboard);
 
-    return filteredLeaderboard as ILeaderboard[];
+    return orderedLeaderboard;
   }
 }

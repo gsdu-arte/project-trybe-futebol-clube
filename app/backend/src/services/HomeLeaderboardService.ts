@@ -5,7 +5,7 @@ import ITeam from '../interfaces/ITeams';
 import getClassifications from '../utils/getClassifications';
 
 export default class HomeLeaderboardService {
-  public static getTotalVictories(matches: IMatches[]): number {
+  public static async getTotalVictories(matches: IMatches[]): Promise<number> {
     const totalVictories = matches
       .filter(
         (match) => match.homeTeamGoals > match.awayTeamGoals,
@@ -14,7 +14,7 @@ export default class HomeLeaderboardService {
     return totalVictories;
   }
 
-  public static getTotalDraws(matches: IMatches[]): number {
+  public static async getTotalDraws(matches: IMatches[]): Promise<number> {
     const totalDraws = matches
       .filter(
         (match) => match.homeTeamGoals === match.awayTeamGoals,
@@ -23,21 +23,21 @@ export default class HomeLeaderboardService {
     return totalDraws;
   }
 
-  public static getTotalPoints(matches: IMatches[]): number {
-    const totalVictories = HomeLeaderboardService.getTotalVictories(matches);
-    const totalDraws = HomeLeaderboardService.getTotalDraws(matches);
+  public static async getTotalPoints(matches: IMatches[]): Promise<number> {
+    const totalVictories = await HomeLeaderboardService.getTotalVictories(matches);
+    const totalDraws = await HomeLeaderboardService.getTotalDraws(matches);
     const totalPoints = (totalVictories * 3) + totalDraws;
 
     return totalPoints;
   }
 
-  public static getTotalGames(matches: IMatches[]): number {
+  public static async getTotalGames(matches: IMatches[]): Promise<number> {
     const totalGames = matches.length;
 
     return totalGames;
   }
 
-  public static getTotalLosses(matches: IMatches[]): number {
+  public static async getTotalLosses(matches: IMatches[]): Promise<number> {
     const totalLosses = matches
       .filter(
         (match) => match.homeTeamGoals < match.awayTeamGoals,
@@ -46,64 +46,74 @@ export default class HomeLeaderboardService {
     return totalLosses;
   }
 
-  public static getGoalsFavor(matches: IMatches[]): number {
+  public static async getGoalsFavor(matches: IMatches[]): Promise<number> {
     const goalsFavor = matches
       .reduce((acc, curr) => acc + curr.homeTeamGoals, 0);
 
     return goalsFavor;
   }
 
-  public static getGoalsOwn(matches: IMatches[]): number {
+  public static async getGoalsOwn(matches: IMatches[]): Promise<number> {
     const goalsOwn = matches
       .reduce((acc, curr) => acc + curr.awayTeamGoals, 0);
 
     return goalsOwn;
   }
 
-  public static getGoalsBalance(matches: IMatches[]): number {
-    const goalsFavor = HomeLeaderboardService.getGoalsFavor(matches);
-    const goalsOwn = HomeLeaderboardService.getGoalsOwn(matches);
+  public static async getGoalsBalance(matches: IMatches[]): Promise<number> {
+    const goalsFavor = await HomeLeaderboardService.getGoalsFavor(matches);
+    const goalsOwn = await HomeLeaderboardService.getGoalsOwn(matches);
     const goalsBalance = goalsFavor - goalsOwn;
 
     return goalsBalance;
   }
 
-  public static getEfficiency(matches: IMatches[]): number {
-    const totalPoints = HomeLeaderboardService.getTotalPoints(matches);
-    const totalGames = HomeLeaderboardService.getTotalGames(matches);
+  public static async getEfficiency(matches: IMatches[]): Promise<number> {
+    const totalPoints = await HomeLeaderboardService.getTotalPoints(matches);
+    const totalGames = await HomeLeaderboardService.getTotalGames(matches);
     const efficiency = ((totalPoints / (totalGames * 3)) * 100).toFixed(2);
 
     return Number(efficiency);
   }
 
-  public static createLeaderboard(teamName: string, matches: IMatches[]): ILeaderboard {
+  public static async createLeaderboard(
+    teamName: string,
+    matches: IMatches[],
+  ): Promise<ILeaderboard> {
     const leaderboard = {
       name: teamName,
-      totalPoints: HomeLeaderboardService.getTotalPoints(matches),
-      totalGames: HomeLeaderboardService.getTotalGames(matches),
-      totalVictories: HomeLeaderboardService.getTotalVictories(matches),
-      totalDraws: HomeLeaderboardService.getTotalDraws(matches),
-      totalLosses: HomeLeaderboardService.getTotalLosses(matches),
-      goalsFavor: HomeLeaderboardService.getGoalsFavor(matches),
-      goalsOwn: HomeLeaderboardService.getGoalsOwn(matches),
-      goalsBalance: HomeLeaderboardService.getGoalsBalance(matches),
-      efficiency: HomeLeaderboardService.getEfficiency(matches),
+      totalPoints: await HomeLeaderboardService.getTotalPoints(matches),
+      totalGames: await HomeLeaderboardService.getTotalGames(matches),
+      totalVictories: await HomeLeaderboardService.getTotalVictories(matches),
+      totalDraws: await HomeLeaderboardService.getTotalDraws(matches),
+      totalLosses: await HomeLeaderboardService.getTotalLosses(matches),
+      goalsFavor: await HomeLeaderboardService.getGoalsFavor(matches),
+      goalsOwn: await HomeLeaderboardService.getGoalsOwn(matches),
+      goalsBalance: await HomeLeaderboardService.getGoalsBalance(matches),
+      efficiency: await HomeLeaderboardService.getEfficiency(matches),
     };
 
     return leaderboard as ILeaderboard;
+  }
+
+  public static async orderedLeaderboard(leaderboard: ILeaderboard[]): Promise<ILeaderboard[]> {
+    const filteredLeaderboard = await getClassifications.getOrderedClassifications(leaderboard);
+
+    return filteredLeaderboard;
   }
 
   public static async getOrderedLeaderboard(
     teams: ITeam[],
     matches: IMatches[],
   ): Promise<ILeaderboard[]> {
-    const leaderboard = teams.map((team) => {
+    const leaderboardPromise = Promise.all(teams.map((team) => {
       const teamMatches = matches.filter((match) => match.homeTeam === team.id);
 
       return HomeLeaderboardService.createLeaderboard(team.teamName, teamMatches);
-    });
-    const filteredLeaderboard = getClassifications.getOrderedClassifications(leaderboard);
+    }));
+    const leaderboard = await leaderboardPromise;
+    const orderedLeaderboard = HomeLeaderboardService.orderedLeaderboard(leaderboard);
 
-    return filteredLeaderboard as ILeaderboard[];
+    return orderedLeaderboard;
   }
 }
