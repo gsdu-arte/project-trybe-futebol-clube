@@ -3,7 +3,7 @@
 import ILeaderboard from '../interfaces/ILeaderboard';
 
 const getClassifications = {
-  getOrderedClassifications: (leaderboard: ILeaderboard[]) => {
+  getOrderedClassifications: async (leaderboard: ILeaderboard[]) => {
     const orderedClassification = leaderboard
       .sort((a, b) => {
         const sorted = b.totalPoints - a.totalPoints

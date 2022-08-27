@@ -8,12 +8,13 @@ import { app } from '../app';
 import { Response } from 'superagent';
 
 import MatchModel from '../database/models/Match';
+
 import IMatches from '../interfaces/IMatches';
-import MatchesService from '../services/MatchesService';
-import MatchesController from '../controllers/MatchesController';
 import IMatchCreateBody from '../interfaces/IMatchCreateBody';
+
+import MatchesService from '../services/MatchesService';
 import JwtService from '../services/JwtService';
-import UnauthorizedError from '../errors/UnauthorizedError';
+
 import IMatchUpdateBody from '../interfaces/IMatchUpdateBody';
 
 chai.use(chaiHttp);
